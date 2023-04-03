@@ -118,27 +118,29 @@ object JsonEncoder extends GeneratedTupleEncoders with EncoderLowPriority1 with 
 
   implicit val string: JsonEncoder[String] = new JsonEncoder[String] {
 
-    override def unsafeEncode(a: String, indent: Option[Int], out: Write): Unit = {
-      out.write('"')
-      var i   = 0
-      val len = a.length
-      while (i < len) {
-        (a.charAt(i): @switch) match {
-          case '"'  => out.write("\\\"")
-          case '\\' => out.write("\\\\")
-          case '\b' => out.write("\\b")
-          case '\f' => out.write("\\f")
-          case '\n' => out.write("\\n")
-          case '\r' => out.write("\\r")
-          case '\t' => out.write("\\t")
-          case c =>
-            if (c < ' ') out.write("\\u%04x".format(c.toInt))
-            else out.write(c)
+    override def unsafeEncode(a: String, indent: Option[Int], out: Write): Unit =
+      if (a eq null) out.write("null")
+      else {
+        out.write('"')
+        var i   = 0
+        val len = a.length
+        while (i < len) {
+          (a.charAt(i): @switch) match {
+            case '"'  => out.write("\\\"")
+            case '\\' => out.write("\\\\")
+            case '\b' => out.write("\\b")
+            case '\f' => out.write("\\f")
+            case '\n' => out.write("\\n")
+            case '\r' => out.write("\\r")
+            case '\t' => out.write("\\t")
+            case c =>
+              if (c < ' ') out.write("\\u%04x".format(c.toInt))
+              else out.write(c)
+          }
+          i += 1
         }
-        i += 1
+        out.write('"')
       }
-      out.write('"')
-    }
 
     override final def toJsonAST(a: String): Either[String, Json] =
       Right(Json.Str(a))
